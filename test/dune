@@ -1,6 +1,5 @@
 (test
- (name test1)
- (libraries
-  alcotest
-  my_project.lib
-  my_project.analysis))
+ (name mainTest)
+ (modules test1 mainTest)
+
+ (libraries alcotest my_project.lib my_project.analysis))

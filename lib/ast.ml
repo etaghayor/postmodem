@@ -76,9 +76,9 @@ type const = CUnit | CInt of int | CBool of bool
 type value =
   | VVar of var (* x          — variable               *)
   | VConst of const (* c          — constant               *)
-  | VLam of var *val_ty * expr (* λx. M      — term abstraction - annotated*)
+  | VLam of var * val_ty * expr (* λx. M      — term abstraction - annotated*)
   | VBigLam of effvar * expr (* ΛX. M      — effect abstraction      *)
-  | VFold of value (* fold V     — recursive type intro    *)
+  | VFold of value* val_ty (* fold V     — recursive type intro - annotated   *)
   | VNext of value (* next V     — later computation results      *)
 
 (* ── Expressions  M ─────────────────────────────────────────────────

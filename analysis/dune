@@ -1,6 +1,7 @@
 (library
  (name analysis)
  (public_name my_project.analysis)
+ (wrapped false)
  (modules
   typecheck
   typecheckAI)
