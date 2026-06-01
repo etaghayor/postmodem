@@ -1,0 +1,8 @@
+(executable
+ (name main)
+ (public_name my_project)
+ (modules main)
+ (libraries
+  my_project.lib
+  my_project.parsing
+  my_project.analysis))

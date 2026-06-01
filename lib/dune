@@ -1,0 +1,8 @@
+(library
+ (name lib)
+ (public_name my_project.lib)
+ (wrapped false)
+ (modules
+  ast
+  types
+  utils))

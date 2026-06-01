@@ -1,0 +1,11 @@
+(library
+ (name parsing)
+ (public_name my_project.parsing)
+ (libraries
+  my_project.lib
+  menhirLib))
+
+; (menhir
+;  (modules parser))
+
+; (ocamllex lexer)

@@ -1,0 +1,9 @@
+(library
+ (name analysis)
+ (public_name my_project.analysis)
+ (modules
+  typecheck
+  typecheckAI)
+ (libraries
+  my_project.lib
+  my_project.parsing))

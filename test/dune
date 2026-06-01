@@ -1,0 +1,6 @@
+(test
+ (name test1)
+ (libraries
+  alcotest
+  my_project.lib
+  my_project.analysis))
