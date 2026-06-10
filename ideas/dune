@@ -1,0 +1,5 @@
+(test
+ (name Example)
+ (modules example)
+
+ (libraries alcotest my_project.lib my_project.analysis))
