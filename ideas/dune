@@ -1,5 +1,6 @@
-(test
- (name Example)
- (modules example)
-
+(library
+ (name ideas)
+ (public_name my_project.ideas)
+ (wrapped false)
+ (modules example intro)
  (libraries alcotest my_project.lib my_project.analysis))
