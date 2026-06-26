@@ -51,16 +51,8 @@ type first_order_ty =
   | FTBase of base_ty (* B    *)
   | FTNext of first_order_ty (* ▶τ   *)
 
-(* ── Typing contexts  Γ ─────────────────────────────────────────────
-  Γ ::= ∅ | Γ, x : T | Γ, X | Γ, α
-  ──────────────────────────────────────────────────────────────────── *)
 
-type ctx_entry =
-  | CEVar of var * val_ty (* x : T   — term variable binding    *)
-  | CEEffVar of effvar (* X       — effect variable           *)
-  | CETVar of tvar (* α       — type variable             *)
 
-type ctx = ctx_entry list
 
 (** Δ ::= ∅ | Δ, α <: β  — used in subtyping for recursive type variables *)
 type subty_ctx = (tvar * tvar) list
@@ -96,3 +88,44 @@ and expr =
   | ENext of expr (* next M  — later computations        *)
   | ETensor of value * value (* V₁ ⊗ V₂ — lator applications       *)
   | EPrev of value (* prev V  — later type destructor  *)
+
+
+(** ── Primitive operations and constants environment ────────────────
+    It contains the types of constants, primitive operations, 
+    and their associated effects.
+ **)
+
+type prim_env = {
+  pe_const : const -> val_ty; (* type of constants *)
+  pe_op : op -> val_ty list * val_ty; (* type of primitive operations *)
+  pe_op_eff : op -> syneff (* effect of primitive operations *)
+}
+
+let default_prim : prim_env =
+  {
+    pe_const =
+      (function
+        | CUnit -> TVBase TUnit
+        | CInt _ -> TVBase TInt
+        | CBool _ -> TVBase TBool);
+    pe_op =
+      (function
+        | "add" ->  [ TVBase TInt; TVBase TInt ], TVBase TInt
+        | _ -> failwith "unknown primitive operation");
+    pe_op_eff =
+      (function
+        | "add" ->
+          SEEmpty (* pure operations *)
+        | _ -> failwith "unknown primitive operation");
+  }
+
+(* ── Typing contexts  Γ ─────────────────────────────────────────────
+   Γ ::= ∅ | Γ, x : T | Γ, X | Γ, α
+   ──────────────────────────────────────────────────────────────────── *)
+
+type ctx_entry =
+  | CEVar of var * val_ty (* x : T   — term variable binding    *)
+  | CEEffVar of effvar (* X       — effect variable           *)
+  | CETVar of tvar (* α       — type variable             *)
+
+type ctx = ctx_entry list
