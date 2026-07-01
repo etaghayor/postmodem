@@ -42,6 +42,8 @@ and val_ty =
   | TVForall of effvar * comp_ty (* ∀X. C          — effect polymorphism *)
   | TVRec of tvar * val_ty (* rec α. T       — recursive type      *)
   | TVLater of val_ty (* ▶T             — later / guarded     *)
+  | TVSum of (string * val_ty list) list (* T₁ + T₂ + ... + Tn — sum type *) (*val_ty list for individual pattern matching*)
+  | TVNamed of string (* instance of sum type *)
 
 (* ── First-order types  τ ───────────────────────────────────────────
    τ ::= B | ▶τ
@@ -51,7 +53,10 @@ type first_order_ty =
   | FTBase of base_ty (* B    *)
   | FTNext of first_order_ty (* ▶τ   *)
 
-
+type pattern =
+  | PWildcard (* _ *)
+  | PVar of var (* x *)
+  | PConstructor of string * pattern list (* C(p1, p2, ..., pn) *)
 
 
 (** Δ ::= ∅ | Δ, α <: β  — used in subtyping for recursive type variables *)
@@ -72,6 +77,7 @@ type value =
   | VBigLam of effvar * expr (* ΛX. M      — effect abstraction      *)
   | VFold of value* val_ty (* fold V     — recursive type intro - annotated   *)
   | VNext of value (* next V     — later computation results      *)
+  | VConstructor of string * value list (* C(V1, V2, ..., Vn) — sum type constructor with named type*)
 
 (* ── Expressions  M ─────────────────────────────────────────────────
    M ::= V | o(V̄) | V₁ V₂ | V e | unfold V | let x = M₁ in M₂
@@ -88,6 +94,7 @@ and expr =
   | ENext of expr (* next M  — later computations        *)
   | ETensor of value * value (* V₁ ⊗ V₂ — lator applications       *)
   | EPrev of value (* prev V  — later type destructor  *)
+  | EMatch of value * (pattern * expr) list (* match V with p1 -> M1 | ... | pn -> Mn *)
 
 
 (** ── Primitive operations and constants environment ────────────────

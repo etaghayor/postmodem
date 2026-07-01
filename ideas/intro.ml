@@ -1,21 +1,69 @@
+(* Reference *)
+
+type procedure = Halt | GoodInfinity of (unit -> procedure)
+
+let rec goodInf =
+  GoodInfinity
+    (fun () ->
+       print_string "seen ";
+       goodInf)
+
+let rec goodTake = function
+  | Halt -> print_string "unseen"
+  | GoodInfinity f -> goodTake (f ());;
+
+let rec lazyTake = function
+  | Halt -> fun () -> print_string "unseen"
+  | GoodInfinity f -> lazyTake (f ());;
+
 
 
 (* Normal Halt case *)
+(* P ≜ rec α. ∀T. T -> ((unit -> ▶α) -> T) -> T*)
 type proc1 = { unfold : 'a.  'a -> ((unit -> proc1) -> 'a) -> 'a };;
 
+(* halt1 = fold (ΛT.λd.λ_.d) 
+  halt1: P *)
 let halt1 : proc1 = (*fold*){ unfold = fun d _ -> d };;
 
+
+(* cont1 = λf. fold (ΛT.λ_.λc.c)
+  cont1 : (unit -> ▶P) -> P*)
 let cont1 f : proc1 = (*fold*) { unfold = fun _ c -> c f};;
 
+(* inf1 = 
+  fix (λf.λ().
+        cont1 (next λ().
+          let _ = ev["seen"] in
+          next (f ())
+          )
+        ) 
+  inf1 (): P & seen^ω 
+*)
 let rec inf1 ():proc1 = cont1 (*fold*) (fun () -> (print_string "seen "; inf1 ()));;
 
+(* 
+  take1 = 
+    fix (λg.λp.
+      let x1 = unfold p in
+      let x2 = x1[unit] in
+      let x3 = x' (ev["unseen"]) in
+      let z = next ( λf.
+                  let y = next () in
+                  let z = g ⊛ y in
+                  prev z) in
+      x3 z
+      ) 
+  take1: ▶(P → unit & "seen"^ω) → P → unit & "unseen" 
+*)
 let rec take1 p =
   p.unfold (*unfold p*) (print_string "unseen.") (fun f -> take1 (f ()));;
 
-(* 
+
 let rec take2 p =
    p.unfold (*unfold p*) (fun () -> print_string "unseen.") (fun f -> take2 (f ()));;
- *)
+
+
 
 
 
@@ -35,26 +83,6 @@ let contLater f : procLater = { run = fun _ c -> c f };;
 let rec infLater () = contLater (fun () -> (print_string "seen "; next (infLater ())));;
 let rec takeLater p =
   p.run (fun () -> print_string "unseen.") (fun f -> takeLater (prev (f ())));;
-
-
-(* Reference *)
-
-type procedure = Halt | GoodInfinity of (unit -> procedure)
-
-let rec goodInf =
-  GoodInfinity
-    (fun () ->
-       print_string "seen ";
-       goodInf)
-
-let rec goodTake = function
-  | Halt -> print_string "unseen"
-  | GoodInfinity f -> goodTake (f ());;
-
-let rec lazyTake = function
-  | Halt -> fun () -> print_string "unseen"
-  | GoodInfinity f -> lazyTake (f ());;
-
 
 
 (* Delay Halt case *)

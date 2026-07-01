@@ -3,8 +3,7 @@
  (public_name my_project.analysis)
  (wrapped false)
  (modules
-  typecheck
-  typecheckAI)
+  typecheck)
  (libraries
   my_project.lib
   my_project.parsing))

@@ -4,5 +4,6 @@
  (wrapped false)
  (modules
   ast
+  helpers
   types
   utils))
