@@ -42,8 +42,6 @@ and val_ty =
   | TVForall of effvar * comp_ty (* ∀X. C          — effect polymorphism *)
   | TVRec of tvar * val_ty (* rec α. T       — recursive type      *)
   | TVLater of val_ty (* ▶T             — later / guarded     *)
-  | TVSum of (string * val_ty list) list (* T₁ + T₂ + ... + Tn — sum type *) (*val_ty list for individual pattern matching*)
-  | TVNamed of string (* instance of sum type *)
 
 (* ── First-order types  τ ───────────────────────────────────────────
    τ ::= B | ▶τ
@@ -77,7 +75,6 @@ type value =
   | VBigLam of effvar * expr (* ΛX. M      — effect abstraction      *)
   | VFold of value* val_ty (* fold V     — recursive type intro - annotated   *)
   | VNext of value (* next V     — later computation results      *)
-  | VConstructor of string * value list (* C(V1, V2, ..., Vn) — sum type constructor with named type*)
 
 (* ── Expressions  M ─────────────────────────────────────────────────
    M ::= V | o(V̄) | V₁ V₂ | V e | unfold V | let x = M₁ in M₂

@@ -4,6 +4,7 @@
  (wrapped false)
  (modules
   ast
+  astSurface
   helpers
   types
   utils))
