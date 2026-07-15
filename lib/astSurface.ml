@@ -38,7 +38,8 @@ and val_tyS =
   | TVBaseS of base_tyS (* B              — base type          *)
   | TVVarS of tvarS (* α              — type variable       *)
   | TVArrowS of val_tyS * comp_tyS (* T → C          — function type      *)
-  | TVForallS of effvarS  * comp_tyS (* ∀X. C          — effect polymorphism *)
+  | TVEffForallS of effvarS  * comp_tyS (* ∀X. C          — effect polymorphism *)
+  | TVTyForallS of tvarS * comp_tyS (* ∀T. C          — type polymorphism *)
   | TVRecS of tvarS* val_tyS(* rec α. T       — recursive type      *)
   | TVSumS of (string * val_tyS list) list (* T₁ + T₂ + ... + Tn — sum type *) (*val_tySlist for individual pattern matching*)
   | TVNamedS of string (* instance of sum type *)
@@ -52,7 +53,7 @@ type first_order_tyS =
 
 type patternS =
   | PWildcardS (* _ *)
-  | PvarS of varS (* x *)
+  | PVarS of varS (* x *)
   | PConstructorS of string * patternS list (* C(p1, p2, ..., pn) *)
 
 
@@ -68,11 +69,12 @@ type constS = CUnitS | CIntS of int | CBoolS of bool
    ──────────────────────────────────────────────────────────────────── *)
 
 type valueS =
-  | VvarS of varS (* x          — variable               *)
+  | VVarS of varS (* x          — variable               *)
   | VConstS of constS (* c          — constant               *)
   | VLamS of varS * val_tyS * exprS (* λx. M      — term abstraction - annotated*)
-  | VBigLam of effvarS  * exprS (* ΛX. M      — effect abstraction      *)
-  | VConstSructor of string * valueS list (* C(V1, V2, ..., Vn) — sum type constructor with named type*)
+  | VEffLamS of effvarS  * exprS (* ΛX. M      — effect abstraction      *)
+  | VTyLamS of val_tyS * exprS (* ΛT. M      — Type abstraction      *)
+  | VConstructorS of string * valueS list (* C(V1, V2, ..., Vn) — sum type constructor with named type*)
 
 (* ── exprSessions  M ─────────────────────────────────────────────────
    M ::= V | o(V̄) | V₁ V₂ | V e | let x = M₁ in M₂
@@ -80,7 +82,7 @@ type valueS =
    ──────────────────────────────────────────────────────────────────── *)
 and exprS =
   | EValS of valueS (* V                           *)
-  | EopS of opS * valueS list (* o(V̄)   — primitive opS call  *)
+  | EOpS of opS * valueS list (* o(V̄)   — primitive opS call  *)
   | EAppS of valueS * valueS (* V₁ V₂  — term application   *)
   | EEffAppS of valueS * syneffS   (* V e    — effect application  *)
   | ELetS of varS * exprS * exprS (* let x = M₁ in M₂            *)

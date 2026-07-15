@@ -39,7 +39,8 @@ and val_ty =
   | TVBase of base_ty (* B              — base type          *)
   | TVVar of tvar (* α              — type variable       *)
   | TVArrow of val_ty * comp_ty (* T → C          — function type      *)
-  | TVForall of effvar * comp_ty (* ∀X. C          — effect polymorphism *)
+  | TVEffForall of effvar * comp_ty (* ∀X. C          — effect polymorphism *)
+  | TVTyForall of tvar * comp_ty (* ∀T. C          — type polymorphism *)
   | TVRec of tvar * val_ty (* rec α. T       — recursive type      *)
   | TVLater of val_ty (* ▶T             — later / guarded     *)
 
@@ -72,7 +73,8 @@ type value =
   | VVar of var (* x          — variable               *)
   | VConst of const (* c          — constant               *)
   | VLam of var * val_ty * expr (* λx. M      — term abstraction - annotated*)
-  | VBigLam of effvar * expr (* ΛX. M      — effect abstraction      *)
+  | VEffLam of effvar * expr (* ΛX. M      — effect abstraction      *)
+  | VTyLam of val_ty * expr (* ΛT. M      — Type abstraction      *)
   | VFold of value* val_ty (* fold V     — recursive type intro - annotated   *)
   | VNext of value (* next V     — later computation results      *)
 

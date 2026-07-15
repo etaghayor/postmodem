@@ -6,5 +6,6 @@
   ast
   astSurface
   helpers
+  translator
   types
   utils))
