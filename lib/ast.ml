@@ -74,7 +74,7 @@ type value =
   | VConst of const (* c          — constant               *)
   | VLam of var * val_ty * expr (* λx. M      — term abstraction - annotated*)
   | VEffLam of effvar * expr (* ΛX. M      — effect abstraction      *)
-  | VTyLam of val_ty * expr (* ΛT. M      — Type abstraction      *)
+  | VTyLam of tvar * expr (* ΛT. M      — Type abstraction      *)
   | VFold of value* val_ty (* fold V     — recursive type intro - annotated   *)
   | VNext of value (* next V     — later computation results      *)
 
@@ -87,6 +87,7 @@ and expr =
   | EOp of op * value list (* o(V̄)   — primitive op call  *)
   | EApp of value * value (* V₁ V₂  — term application   *)
   | EEffApp of value * syneff (* V e    — effect application  *)
+  | ETyApp of value * val_ty (* V T    — type application*)
   | EUnfold of value (* unfold V                    *)
   | ELet of var * expr * expr (* let x = M₁ in M₂            *)
   | EIf of value * expr * expr (* if V then M₁ else M₂        *)

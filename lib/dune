@@ -7,5 +7,6 @@
   astSurface
   helpers
   translator
+  translatorAI
   types
   utils))

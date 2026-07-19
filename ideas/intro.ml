@@ -1,3 +1,32 @@
+
+(* examples *)
+
+
+type mainrec = M1 | M2 of (unit -> mainrec)
+(* mainrec ≜ ∀T. (unit -> T (-)) -> ((unit -> T (+)) -> T (-)) -> T (+) *)
+
+let rec minf = M2 (fun () -> print_string "seen "; minf);;
+
+let rec mtake x = match x with
+  | M1 -> (*x/M1 is a later => call prev *) print_string "unseen"
+  | M2 f -> mtake ((*next*)f ());;
+
+type arec = A1 of int | A2 of (arec -> unit)
+(* arec ≜ ∀T. (int -> T (-))  -> ((T (-) -> unit) -> T (-)) -> T (+)*)
+
+let rec ainf = A2 (fun x -> print_string "Aseen ");;
+
+let rec atake x = match x with
+  | A1 n ->(*x/A1 n is a later => call prev *) print_string "Aunseen"
+  | A2 f  -> f (*next*)x; atake (*next*)x;;
+
+type brec = B1 of (int -> brec -> int) | B2 of brec
+(* brec ≜ ∀T. (int -> T (+) -> int)  -> (T (+) -> T (-)) -> T (+)*)
+let rec binf = B1 (fun n b -> print_string "Bseen "; n);;
+let rec btake x = match x with
+  | B1 f -> let _ = (f 0 (*next*)x) in btake (*next*)x
+  | B2 b -> (*b is a later and B2 b is negative => call prev*)print_string "Bunseen"
+
 (* Reference *)
 
 type procedure = Halt | GoodInfinity of (unit -> procedure)
@@ -8,37 +37,35 @@ let rec goodInf =
        print_string "seen ";
        goodInf)
 
-let rec goodTake = function
+let rec goodTake x = match x with
   | Halt -> print_string "unseen"
   | GoodInfinity f -> goodTake (f ());;
 
 let rec lazyTake = function
   | Halt -> fun () -> print_string "unseen"
   | GoodInfinity f -> lazyTake (f ());;
-
-
-
 (* Normal Halt case *)
+
 (* P ≜ rec α. ∀T. T -> ((unit -> ▶α) -> T) -> T*)
 type proc1 = { unfold : 'a.  'a -> ((unit -> proc1) -> 'a) -> 'a };;
 
 (* halt1 = fold (ΛT.λd.λ_.d) 
-  halt1: P *)
+   halt1: P *)
 let halt1 : proc1 = (*fold*){ unfold = fun d _ -> d };;
 
 
 (* cont1 = λf. fold (ΛT.λ_.λc.c)
-  cont1 : (unit -> ▶P) -> P*)
+   cont1 : (unit -> ▶P) -> P*)
 let cont1 f : proc1 = (*fold*) { unfold = fun _ c -> c f};;
 
 (* inf1 = 
-  fix (λf.λ().
+   fix (λf.λ().
         cont1 (next λ().
           let _ = ev["seen"] in
           next (f ())
           )
         ) 
-  inf1 (): P & seen^ω 
+   inf1 (): P & seen^ω 
 *)
 let rec inf1 ():proc1 = cont1 (*fold*) (fun () -> (print_string "seen "; inf1 ()));;
 
@@ -61,7 +88,7 @@ let rec take1 p =
 
 
 let rec take2 p =
-   p.unfold (*unfold p*) (fun () -> print_string "unseen.") (fun f -> take2 (f ()));;
+  p.unfold (*unfold p*) (fun () -> print_string "unseen.") (fun f -> take2 (f ()));;
 
 
 

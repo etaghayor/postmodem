@@ -73,7 +73,7 @@ type valueS =
   | VConstS of constS (* c          — constant               *)
   | VLamS of varS * val_tyS * exprS (* λx. M      — term abstraction - annotated*)
   | VEffLamS of effvarS  * exprS (* ΛX. M      — effect abstraction      *)
-  | VTyLamS of val_tyS * exprS (* ΛT. M      — Type abstraction      *)
+  | VTyLamS of tvarS * exprS (* ΛT. M      — Type abstraction      *)
   | VConstructorS of string * valueS list (* C(V1, V2, ..., Vn) — sum type constructor with named type*)
 
 (* ── exprSessions  M ─────────────────────────────────────────────────
@@ -88,8 +88,8 @@ and exprS =
   | ELetS of varS * exprS * exprS (* let x = M₁ in M₂            *)
   | EIfS of valueS * exprS * exprS (* if V then M₁ else M₂        *)
   | ETensorS of valueS * valueS (* V₁ ⊗ V₂ — lator applications       *)
-  | EMatchS of valueS * (patternS * exprS) list (* match V with p1 -> M1 | ... | pn -> Mn *)
-
+  | EMatchS of valueS * val_tyS * (patternS * exprS) list (* match V with p1 -> M1 | ... | pn -> Mn *)
+  | ELetRecS of varS * varS * val_tyS * comp_tyS * exprS * exprS (* let rec f (x : T1) : C = M in N*)
 
 (** ── Primitive operations and constants environment ────────────────
     It contains the types of constants, primitive operations, 
@@ -130,3 +130,17 @@ type ctx_entryS =
   | CEtvarS of tvarS (* α       — type variable             *)
 
 type ctxS = ctx_entryS list
+
+
+(* ── ADT ──────────────────────────────────────────────────────── *)
+
+type adt_declS = {
+  adt_name : string;
+  adt_variants : (string * val_tyS list) list;
+}
+(* ── Programs ──────────────────────────────────────────────────────── *)
+
+type programS = {
+  prog_decls : adt_declS list;
+  prog_main : exprS;
+}
