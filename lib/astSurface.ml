@@ -40,7 +40,7 @@ and val_tyS =
   | TVArrowS of val_tyS * comp_tyS (* T → C          — function type      *)
   | TVEffForallS of effvarS  * comp_tyS (* ∀X. C          — effect polymorphism *)
   | TVTyForallS of tvarS * comp_tyS (* ∀T. C          — type polymorphism *)
-  | TVRecS of tvarS* val_tyS(* rec α. T       — recursive type      *)
+  | TVRecS of tvarS* val_tyS (* rec α. T       — recursive type      *)
   | TVSumS of (string * val_tyS list) list (* T₁ + T₂ + ... + Tn — sum type *) (*val_tySlist for individual pattern matching*)
   | TVNamedS of string (* instance of sum type *)
 
@@ -133,7 +133,7 @@ type ctxS = ctx_entryS list
 
 
 (* ── ADT ──────────────────────────────────────────────────────── *)
-
+(* type adt_name = adt_variant1 of [val_tyS] | adt_variant2 of [val_tyS] | ... *)
 type adt_declS = {
   adt_name : string;
   adt_variants : (string * val_tyS list) list;

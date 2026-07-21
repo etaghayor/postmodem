@@ -1,4 +1,4 @@
-open Ast
+(* open Ast
 open AstSurface
 
 
@@ -56,4 +56,4 @@ and translate_syneff e = match e with
 and translate_base_ty b = match b with
   | TUnitS -> TUnit
   | TBoolS -> TBool
-  | TIntS -> TInt 
+  | TIntS -> TInt  *)

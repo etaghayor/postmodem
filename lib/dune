@@ -9,4 +9,5 @@
   translator
   translatorAI
   types
-  utils))
+  utils
+  ))
