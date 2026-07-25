@@ -1,4 +1,4 @@
 (test
- (name mainTest)
- (modules test1 mainTest)
+ (name runtest)
+ (modules tests runtest)
  (libraries alcotest my_project.lib my_project.analysis))

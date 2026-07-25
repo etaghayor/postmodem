@@ -74,7 +74,7 @@ type valueS =
   | VLamS of varS * val_tyS * exprS (* λx. M      — term abstraction - annotated*)
   | VEffLamS of effvarS  * exprS (* ΛX. M      — effect abstraction      *)
   | VTyLamS of tvarS * exprS (* ΛT. M      — Type abstraction      *)
-  | VConstructorS of string * valueS list (* C(V1, V2, ..., Vn) — sum type constructor with named type*)
+  | VConstructorS of tvarS * valueS list (* C(V1, V2, ..., Vn) — sum type constructor with named type*)
 
 (* ── exprSessions  M ─────────────────────────────────────────────────
    M ::= V | o(V̄) | V₁ V₂ | V e | let x = M₁ in M₂

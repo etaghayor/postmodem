@@ -3,7 +3,7 @@ open AstSurface
 open TranslatorAI
 (* open Utils *)
 open Pp
-open Test1
+open Tests
 
 (* ── ADT ──────────────────────────────────────────────────────── *)
 let penv = default_prim;;
@@ -28,10 +28,15 @@ let () =
   (* trans_value decl_env m2_closure |> pp_value ~compact:false Format.std_formatter; *)
   (* EValS (VConstructorS ("Cont", [ m2_closure ])) |> trans_expr decl_env penv None |> pp_expr ~compact:false Format.std_formatter; *)
   (* trans_expr decl_env penv None minf_expr|> pp_expr ~compact:true Format.std_formatter; *)
-  trans_expr decl_env penv None mres |> pp_expr ~compact:true Format.std_formatter;
+  (* trans_expr decl_env penv None mres |> pp_expr ~compact:true Format.std_formatter;
+  Format.print_flush ();
+  print_endline "\n"; *)
+
+  trans_val_ty decl_env ["Proc"] (TVNamedS "Proc") |> pp_val_ty ~compact:true Format.std_formatter;
+  
   Format.print_flush ();
   print_endline "\n";
-
+  
   (* ----- EValS (VConstructorS ("Cont", [ m2_closure ])) ----- *)
 
   (* Proc = (rec __rec_Proc.

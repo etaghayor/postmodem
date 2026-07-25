@@ -32,10 +32,10 @@ let minf_expr : exprS =
 (* let rec mtake x = match x with
      | Halt -> print_string "unseen"
      | Cont f -> mtake (f ()) *)
-let mtake_expr : exprS =
+let mres : exprS =
   ELetRecS
     ( "mtake", "x", TVNamedS "Proc",
-      { ct_valS = TVBaseS TUnitS; ct_effS = SELabelS "print" },
+      { ct_valS = TVBaseS TUnitS; ct_effS = SEEmptyS },
       EMatchS
         ( VVarS "x",
           TVBaseS TUnitS,
@@ -46,9 +46,8 @@ let mtake_expr : exprS =
                 ( "y", EAppS (VVarS "f", VConstS CUnitS),
                   EAppS (VVarS "mtake", VVarS "y") ) )
           ] ),
-      EValS (VVarS "mtake") )
-
-let mres : exprS = 
-  ELetS ("minf", minf_expr, 
+      ELetS ("minf", minf_expr,EAppS (VVarS "mtake", VVarS "minf")))
+(* let mres : exprS = 
+   ELetS ("minf", minf_expr, 
          ELetS ("mtake", mtake_expr,
-                EAppS (VVarS "mtake", VVarS "minf")))
+                EAppS (VVarS "mtake", VVarS "minf"))) *)
