@@ -9,7 +9,7 @@ all:
 	$(BUILD)
 
 run:
-	$(RUN) test/mainTest.exe
+	$(RUN) test/runtest.exe
 
 test:
 	$(TEST)

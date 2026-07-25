@@ -154,6 +154,7 @@ let rec pp_trace fmt (t : trace) =
   | TLabel l -> Format.fprintf fmt "%s" l
   | TSeq (t1, t2) -> Format.fprintf fmt "@[<hov 2>%a@ \xe2\x8a\xb5 %a@]" pp_trace t1 pp_trace t2
   | TJoin (t1, t2) -> Format.fprintf fmt "@[<hov 2>%a@ \xe2\x88\xa8 %a@]" pp_trace t1 pp_trace t2
+  | TStar t1 -> Format.fprintf fmt "(%a)*" pp_trace t1
 
 let pp_eff_val fmt (e : eff_val) =
   let pp_inf fmt = function

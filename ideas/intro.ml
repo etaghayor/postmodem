@@ -29,6 +29,16 @@ let rec btake x = match x with
 
 (* Reference *)
 
+
+type crec = C1 | C2 of (unit -> crec)
+let rec cinf = C2 (fun () -> print_string "Cseen "; cinf);;
+let rec ctake x = match x with
+  | C1 -> print_string "Cunseen"
+  | C2 f -> iter f
+and iter f = let _ = f () in iter f
+
+let _ = ctake cinf;;
+
 type procedure = Halt | GoodInfinity of (unit -> procedure)
 
 let rec goodInf =

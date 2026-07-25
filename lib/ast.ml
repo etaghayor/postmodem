@@ -148,6 +148,7 @@ type trace =
   | TLabel of string
   | TSeq of trace * trace
   | TJoin of trace * trace
+  | TStar of trace  (* zero or more repetitions - finitely many, still a finite trace *)
 
 type eff_val = { fin : trace; inf : trace option }
 
@@ -156,6 +157,8 @@ let tseq (a : trace) (b : trace) : trace =
 
 let tjoin (a : trace) (b : trace) : trace =
   if a = b then a else TJoin (a, b)
+
+let tstar (t : trace) : trace = match t with TEps -> TEps | TStar _ -> t | _ -> TStar t
 
 let bottom : eff_val = { fin = TEps; inf = None }
 let of_label (l : string) : eff_val = { fin = TLabel l; inf = None }
@@ -192,6 +195,11 @@ let rec subst_trace (x : string) (repl : eff_val) (t : trace) : eff_val =
   | TLabel l -> of_label l
   | TSeq (t1, t2) -> seq (subst_trace x repl t1) (subst_trace x repl t2)
   | TJoin (t1, t2) -> join (subst_trace x repl t1) (subst_trace x repl t2)
+  | TStar t1 -> (
+      let v = subst_trace x repl t1 in
+      match v.inf with
+      | Some l -> diverge l (* repeating something that itself never returns just IS that divergence *)
+      | None -> { fin = tstar v.fin; inf = None })
 
 let subst (x : string) (repl : eff_val) (e : eff_val) : eff_val =
   let via_fin = subst_trace x repl e.fin in
