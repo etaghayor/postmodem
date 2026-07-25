@@ -10,7 +10,7 @@ type op = string (* primitive operation names              *)
    B ::= unit | bool | int | ···
    ──────────────────────────────────────────────────────────────────── *)
 
-type base_ty = TUnit | TBool | TInt
+type base_ty = TUnit | TBool | TInt | TString
 
 (* ── Syntactic effects  e ───────────────────────────────────────────
    e ::= ε | X | e₁ ∨ e₂ | e₁ ⊵ e₂ | ▶e | e
@@ -52,10 +52,6 @@ type first_order_ty =
   | FTBase of base_ty (* B    *)
   | FTNext of first_order_ty (* ▶τ   *)
 
-type pattern =
-  | PWildcard (* _ *)
-  | PVar of var (* x *)
-  | PConstructor of string * pattern list (* C(p1, p2, ..., pn) *)
 
 
 (** Δ ::= ∅ | Δ, α <: β  — used in subtyping for recursive type variables *)
@@ -63,7 +59,7 @@ type subty_ctx = (tvar * tvar) list
 
 (* ── Constants ─────────────────────────────────────────────────────── *)
 
-type const = CUnit | CInt of int | CBool of bool
+type const = CUnit | CInt of int | CBool of bool | CString of string
 
 (* ── Values  V ──────────────────────────────────────────────────────
    V ::= x | c | λx.M | ΛX.M | fold V | next V
@@ -94,7 +90,6 @@ and expr =
   | ENext of expr (* next M  — later computations        *)
   | ETensor of value * value (* V₁ ⊗ V₂ — lator applications       *)
   | EPrev of value (* prev V  — later type destructor  *)
-  | EMatch of value * (pattern * expr) list (* match V with p1 -> M1 | ... | pn -> Mn *)
 
 
 (** ── Primitive operations and constants environment ────────────────
@@ -114,7 +109,8 @@ let default_prim : prim_env =
       (function
         | CUnit -> TVBase TUnit
         | CInt _ -> TVBase TInt
-        | CBool _ -> TVBase TBool);
+        | CBool _ -> TVBase TBool
+        | CString _ -> TVBase TString);
     pe_op =
       (function
         | "add" ->  [ TVBase TInt; TVBase TInt ], TVBase TInt
@@ -136,3 +132,76 @@ type ctx_entry =
   | CETVar of tvar (* α       — type variable             *)
 
 type ctx = ctx_entry list
+
+(* ══════════════════════════════════════════════════════════════════
+   Semantic effects: (φ, ι) pairs.
+   φ (fin) : guaranteed finite prefix.
+   ι (inf) : None if the effect terminates after φ; Some loop if,
+             after φ, it repeats `loop` forever (ι = loop^ω).
+   This is the value domain effect inference computes INTO - distinct
+   from `syneff` above, which is the syntax effects are WRITTEN in.
+   ══════════════════════════════════════════════════════════════════ *)
+
+type trace =
+  | TEps
+  | TVar of string
+  | TLabel of string
+  | TSeq of trace * trace
+  | TJoin of trace * trace
+
+type eff_val = { fin : trace; inf : trace option }
+
+let tseq (a : trace) (b : trace) : trace =
+  match (a, b) with TEps, t | t, TEps -> t | _ -> TSeq (a, b)
+
+let tjoin (a : trace) (b : trace) : trace =
+  if a = b then a else TJoin (a, b)
+
+let bottom : eff_val = { fin = TEps; inf = None }
+let of_label (l : string) : eff_val = { fin = TLabel l; inf = None }
+let of_var (x : string) : eff_val = { fin = TVar x; inf = None }
+let diverge (loop : trace) : eff_val = { fin = TEps; inf = Some loop }
+
+(* join (finite/infinite parts). If either side can diverge, that
+   possibility survives into the join. *)
+let join (e1 : eff_val) (e2 : eff_val) : eff_val =
+  {
+    fin = tjoin e1.fin e2.fin;
+    inf =
+      (match (e1.inf, e2.inf) with
+       | None, None -> None
+       | Some l, None | None, Some l -> Some l
+       | Some l1, Some l2 -> Some (tjoin l1 l2));
+  }
+
+(* sequential composition ("add e2 after e1") - where the infinite
+   part is actually generated: if e1 already diverges, e2 is
+   unreachable and the composition's infinite part is just e1's;
+   otherwise e1 terminates, so only THEN can e2's infinite part (if
+   any) take over. *)
+let seq (e1 : eff_val) (e2 : eff_val) : eff_val =
+  match e1.inf with
+  | Some loop -> { fin = e1.fin; inf = Some loop }
+  | None -> { fin = tseq e1.fin e2.fin; inf = e2.inf }
+
+(* modify: substitute effect variable x by `repl` throughout e. *)
+let rec subst_trace (x : string) (repl : eff_val) (t : trace) : eff_val =
+  match t with
+  | TEps -> bottom
+  | TVar y -> if y = x then repl else of_var y
+  | TLabel l -> of_label l
+  | TSeq (t1, t2) -> seq (subst_trace x repl t1) (subst_trace x repl t2)
+  | TJoin (t1, t2) -> join (subst_trace x repl t1) (subst_trace x repl t2)
+
+let subst (x : string) (repl : eff_val) (e : eff_val) : eff_val =
+  let via_fin = subst_trace x repl e.fin in
+  match e.inf with
+  | None -> via_fin
+  | Some loop -> (
+      (* x also occurs in the repeated loop body; if repl itself
+         diverges, the loop can never get back around to repeating -
+         it collapses into repl's own infinite behavior instead. *)
+      let loop_val = subst_trace x repl loop in
+      match loop_val.inf with
+      | Some l -> seq via_fin (diverge l)
+      | None -> seq via_fin (diverge loop_val.fin))

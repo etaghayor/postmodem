@@ -10,7 +10,7 @@ type opS = string (* primitive operation names              *)
    B ::= unit | bool | int | ···
    ──────────────────────────────────────────────────────────────────── *)
 
-type base_tyS = TUnitS | TBoolS | TIntS
+type base_tyS = TUnitS | TBoolS | TIntS |TStringS
 
 (* ── Syntactic effects  e ───────────────────────────────────────────
    e ::= ε | X | e₁ ∨ e₂ | e₁ ⊵ e₂ | ▶e | e
@@ -62,7 +62,7 @@ type subty_ctxS = (tvarS * tvarS) list
 
 (* ── Constants ─────────────────────────────────────────────────────── *)
 
-type constS = CUnitS | CIntS of int | CBoolS of bool
+type constS = CUnitS | CIntS of int | CBoolS of bool | CStringS of string
 
 (* ── valueSs  V ──────────────────────────────────────────────────────
    V ::= x | c | λx.M | ΛX.M 
@@ -90,6 +90,10 @@ and exprS =
   | ETensorS of valueS * valueS (* V₁ ⊗ V₂ — lator applications       *)
   | EMatchS of valueS * val_tyS * (patternS * exprS) list (* match V with p1 -> M1 | ... | pn -> Mn *)
   | ELetRecS of varS * varS * val_tyS * comp_tyS * exprS * exprS (* let rec f (x : T1) : C = M in N*)
+  | ELetRecValS of varS * val_tyS * exprS * exprS
+    (* let rec f : T = M in N — recursive *value* binding (OCaml's
+       `let rec x = ...`, no function parameter), e.g. a self-referential
+       stream. Ordinary surface syntax; no annotations. *)
 
 (** ── Primitive operations and constants environment ────────────────
     It contains the types of constants, primitive operations, 
@@ -107,16 +111,19 @@ let default_prim : prim_envS =
     pe_constS =
       (function
         | CUnitS -> TVBaseS TUnitS
+        | CStringS _ -> TVBaseS TStringS
         | CIntS _ -> TVBaseS TIntS
         | CBoolS _ -> TVBaseS TBoolS);
     pe_opS =
       (function
         | "add" ->  [ TVBaseS TIntS; TVBaseS TIntS ], TVBaseS TIntS
+        | "print" -> [ TVBaseS TStringS ], TVBaseS TUnitS
         | _ -> failwith "unknown primitive operation");
     pe_op_effS =
       (function
         | "add" ->
           SEEmptyS (* pure operations *)
+        | "print" -> SELabelS "print"
         | _ -> failwith "unknown primitive operation");
   }
 
@@ -137,6 +144,13 @@ type ctxS = ctx_entryS list
 type adt_declS = {
   adt_name : string;
   adt_variants : (string * val_tyS list) list;
+  adt_guarded : bool;
+  (* true for coinductive ADTs (e.g. Proc, infinite streams): self-references
+     in field types are guarded automatically, and any ELetRecS/ELetRecValS
+     recursing over this ADT is compiled via guarded (Löb/Nakano-style)
+     recursion instead of plain structural fold/unfold self-application.
+     No other surface-visible change: still ordinary ADTs, ordinary
+     pattern matching, ordinary recursive functions/values. *)
 }
 (* ── Programs ──────────────────────────────────────────────────────── *)
 

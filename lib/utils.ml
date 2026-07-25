@@ -12,6 +12,7 @@ let rec string_of_val_ty = function
   | TVBase TUnit -> "unit"
   | TVBase TBool -> "bool"
   | TVBase TInt -> "int"
+  | TVBase TString -> "string"
   | TVVar a -> a
   | TVArrow (t, c) -> Printf.sprintf "(%s -> %s)" (string_of_val_ty t) (string_of_comp_ty c)
   | TVEffForall (x, c) -> Printf.sprintf "(∀%s. %s)" x (string_of_comp_ty c)
@@ -26,6 +27,7 @@ let string_of_const = function
   | CUnit -> "()"
   | CInt n -> string_of_int n
   | CBool b -> string_of_bool b
+  | CString s -> Printf.sprintf "\"%s\"" s
 
 let rec string_of_value = function
   | VVar x -> x
@@ -51,13 +53,3 @@ and string_of_expr = function
   | ENext e -> Printf.sprintf "(next %s)" (string_of_expr e)
   | ETensor (v1, v2) -> Printf.sprintf "(%s ⊗ %s)" (string_of_value v1) (string_of_value v2)
   | EPrev v -> Printf.sprintf "(prev %s)" (string_of_value v)
-  | EMatch (v, brs) ->
-    let string_of_pat = function
-      | PWildcard -> "_"
-      | PVar x -> x
-      | PConstructor (c, _) -> Printf.sprintf "%s(..)" c
-    in
-    let brs' =
-      List.map (fun (p, e) -> Printf.sprintf "%s -> %s" (string_of_pat p) (string_of_expr e)) brs
-    in
-    Printf.sprintf "(match %s with %s)" (string_of_value v) (String.concat " | " brs')
